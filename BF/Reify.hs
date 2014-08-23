@@ -21,34 +21,18 @@ class Reify t a | t -> a where
 -- numbers
 --
 
-class Peano t where
-    toInt :: t -> Int
-instance Peano Zero where
-    toInt _ = 0
-instance Peano a => Peano (Succ a) where
-    toInt _ = 1 + toInt (undefined :: a)
-
-
---instance a ~ Int => Reify Zero a where
---    reify = toInt
---instance (Peano n, a ~ Int) => Reify (Succ n) a where
---    reify = toInt
-
-instance (Peano n, res ~ Int) => Reify n res where
-    reify = toInt
-
---instance Reify Zero Int where
---    reify _ = 0
---instance Reify (Succ n) Int where
---    reify _ = 1 + reify (undefined :: n)
+instance Reify Zero Int where
+    reify _ = 0
+instance Reify n Int => Reify (Succ n) Int where
+    reify _ = 1 + reify (undefined :: n)
 
 --
--- list
+-- list (of ints.  thanks liberal coverage condition)
 --
 
 instance Reify Nil [Int] where
     reify _ = []
-instance (Peano t, Reify u [Int]) => Reify (t :* u) [Int] where
+instance (Reify t Int, Reify u [Int]) => Reify (t :* u) [Int] where
     reify _ =  reify (undefined :: t) : reify (undefined :: u) 
 
 --
@@ -61,14 +45,9 @@ instance ( Reify ls [a]
          , Show a
          , res ~ String
          ) => Reify (Array ls x rs) res where
---instance res ~ String => Reify (Array ls x rs) res where
-    -- reify _ = Z (reify (undefined :: ls))
-    --             (reify (undefined :: x ))
-    --             (reify (undefined :: rs))
-    --reify _ = (showLeft . reify $ (undefined :: ls))
-    --       ++ "*" ++ (show $ reify (undefined :: x ))
-    --       ++ (showRight . reify $ (undefined :: rs))
-    reify = undefined
+    reify _ = (showLeft . reify $ (undefined :: ls))
+           ++ "*" ++ (show $ reify (undefined :: x ))
+           ++ (showRight . reify $ (undefined :: rs))
 
 showLeft :: Show a => [a] -> String
 showLeft xs = case xs of
