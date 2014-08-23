@@ -11,7 +11,6 @@
 module BF.Core where
 
 import BF.Types
-import BF.Reify
 
 infixr :>
 data a :> b
@@ -74,4 +73,3 @@ eval = undefined
 exec :: ( Eval bf array inp out array' inp' out'
         ) => bf -> (array,inp,out) -> array
 exec = undefined
-

@@ -21,5 +21,5 @@ output = undefined :: Nil
 
 -- prog = undefined :: $(load "rot13.bf")
 
-prog = undefined :: $(bf ",[+.-,]")
+prog = undefined :: $(bf ",[.,]")
 main = putStr . map chr . reify . eval prog $ (tape, input, output)

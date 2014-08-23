@@ -28,7 +28,7 @@ load file = do
 -- instead of from a file
 loadfromstdin :: TypeQ
 loadfromstdin = do
-    bf <=< runIO . getContents
+    bf =<< runIO getContents
 
 --
 -- typifying functions: do essentially the opposite of reify

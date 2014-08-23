@@ -4,8 +4,11 @@
            , FlexibleContexts
            , FlexibleInstances
            , UndecidableInstances
+           , OverlappingInstances
            , ScopedTypeVariables 
-           , TypeSynonymInstances#-}
+           , TypeSynonymInstances
+           , TypeFamilies
+           #-}
 
 module BF.Reify where
 
@@ -26,18 +29,26 @@ instance Peano a => Peano (Succ a) where
     toInt _ = 1 + toInt (undefined :: a)
 
 
-instance Reify Zero Int where
+--instance a ~ Int => Reify Zero a where
+--    reify = toInt
+--instance (Peano n, a ~ Int) => Reify (Succ n) a where
+--    reify = toInt
+
+instance (Peano n, res ~ Int) => Reify n res where
     reify = toInt
-instance Peano a => Reify (Succ a) Int where
-    reify = toInt
+
+--instance Reify Zero Int where
+--    reify _ = 0
+--instance Reify (Succ n) Int where
+--    reify _ = 1 + reify (undefined :: n)
 
 --
 -- list
 --
 
-instance Reify Nil [a] where
+instance Reify Nil [Int] where
     reify _ = []
-instance (Reify t a , Reify u [a]) => Reify (t :* u) [a] where
+instance (Peano t, Reify u [Int]) => Reify (t :* u) [Int] where
     reify _ =  reify (undefined :: t) : reify (undefined :: u) 
 
 --
@@ -48,13 +59,16 @@ instance ( Reify ls [a]
          , Reify x   a
          , Reify rs [a]
          , Show a
-         ) => Reify (Array ls x rs) String where
+         , res ~ String
+         ) => Reify (Array ls x rs) res where
+--instance res ~ String => Reify (Array ls x rs) res where
     -- reify _ = Z (reify (undefined :: ls))
     --             (reify (undefined :: x ))
     --             (reify (undefined :: rs))
-    reify _ = (showLeft  . reify $ (undefined :: ls))
-           ++ "*" ++ (show $ reify (undefined :: x ))
-           ++ (showRight . reify $ (undefined :: rs))
+    --reify _ = (showLeft . reify $ (undefined :: ls))
+    --       ++ "*" ++ (show $ reify (undefined :: x ))
+    --       ++ (showRight . reify $ (undefined :: rs))
+    reify = undefined
 
 showLeft :: Show a => [a] -> String
 showLeft xs = case xs of
@@ -73,8 +87,8 @@ showRight xs = case xs of
 instance ( Reify t a
          , Reify u b
          , Reify v c
-         ) => Reify (t,u,v) (a,b,c) where
+         , res ~ (a,b,c)
+         ) => Reify (t,u,v) res where
     reify _ = ( reify (undefined :: t)
               , reify (undefined :: u)
               , reify (undefined :: v) )
-
