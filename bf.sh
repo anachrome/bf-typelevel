@@ -10,8 +10,12 @@ then
     CONTEXTSTACK=100
 fi
 
-echo '{-# LANGUAGE TemplateHaskell #-}'                        >  Makemain.hs
+echo '{-# LANGUAGE TemplateHaskell'                            >  Makemain.hs
+echo '           , DataKinds'                                  >> Makemain.hs
+echo '           , PolyKinds'                                  >> Makemain.hs
+echo '           #-}'                                          >> Makemain.hs
 echo ''                                                        >> Makemain.hs
+echo 'import Data.Proxy'                                       >> Makemain.hs
 echo 'import Data.Char (ord, chr)'                             >> Makemain.hs
 echo ''                                                        >> Makemain.hs
 echo 'import BF.Types'                                         >> Makemain.hs
@@ -19,13 +23,14 @@ echo 'import BF.Core'                                          >> Makemain.hs
 echo 'import BF.Typify'                                        >> Makemain.hs
 echo 'import BF.Reify'                                         >> Makemain.hs
 echo ''                                                        >> Makemain.hs
-echo 'a = undefined :: $(array $ replicate' "$TAPELENGTH" '0)' >> Makemain.hs
-echo 'i = undefined :: $(list . map ord $' "\"$2\")"    >> Makemain.hs
-echo 'o = undefined :: Nil'                                    >> Makemain.hs
+echo 'type T = $(ziplist $ replicate' "$TAPELENGTH" '0)'       >> Makemain.hs
+echo 'type I = $(list . map ord $' "\"$2\")"                   >> Makemain.hs
+echo "type O = '[]"                                            >> Makemain.hs
 echo ''                                                        >> Makemain.hs
-echo 'prog = undefined :: $(load' "\"$1\")"                    >> Makemain.hs
+echo 'type Prog = $(load' "\"$1\")"                            >> Makemain.hs
 echo ''                                                        >> Makemain.hs
-echo 'main = putStr . map chr . reify . eval prog $ (a,i,o)'   >> Makemain.hs
+echo 'main = putStr . map chr . reify'                         >> Makemain.hs
+echo "     $ (undefined :: Proxy (EvalBF Prog '(T,I,O)))"      >> Makemain.hs
 ghc Makemain.hs -o Makemain -odir=obj -hidir=obj -fcontext-stack=$CONTEXTSTACK\
     > /dev/null && ./Makemain && rm Makemain
 rm -r Makemain.hs obj
