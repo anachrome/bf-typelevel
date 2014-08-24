@@ -2,8 +2,6 @@
 
 {-# LANGUAGE TypeOperators
            , TypeFamilies
-           , MultiParamTypeClasses
-           , FunctionalDependencies
            , FlexibleInstances
            , UndecidableInstances
            , DataKinds

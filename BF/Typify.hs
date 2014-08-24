@@ -2,7 +2,6 @@
 -- haskell values; the counterpart to BF.Reify
 
 {-# LANGUAGE TemplateHaskell
-           , FlexibleInstances
            , DataKinds
            , TypeOperators
            #-}
@@ -12,7 +11,7 @@ module BF.Typify where
 import Control.Applicative ((<$>))
 import Control.Monad ((<=<))
 import Text.Parsec.String (Parser)
-import Text.Parsec (many, manyTill, char, anyChar, optionMaybe, parse)
+import Text.Parsec (many, manyTill, char, anyChar, parse)
 
 import Language.Haskell.TH (TypeQ, runIO , promotedT, appT, mkName)
 import Language.Haskell.TH.Syntax (addDependentFile)

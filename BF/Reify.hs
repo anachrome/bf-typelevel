@@ -4,12 +4,9 @@
 {-# LANGUAGE TypeOperators
            , MultiParamTypeClasses
            , FunctionalDependencies
-           , FlexibleContexts
            , FlexibleInstances
            , UndecidableInstances
-           , OverlappingInstances
            , ScopedTypeVariables 
-           , TypeSynonymInstances
            , TypeFamilies
            , DataKinds
            , PolyKinds

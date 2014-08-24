@@ -1,15 +1,10 @@
 -- type level bf-ast and eval function
 
-{-# LANGUAGE MultiParamTypeClasses
-           , TypeOperators
-           , FunctionalDependencies
-           , FlexibleContexts
-           , FlexibleInstances
-           , UndecidableInstances
-           , OverlappingInstances
+{-# LANGUAGE UndecidableInstances
            , TypeFamilies
            , DataKinds
            , PolyKinds
+           , TypeOperators
            #-}
 
 module BF.Core where
