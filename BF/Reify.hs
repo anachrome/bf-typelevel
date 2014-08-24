@@ -8,14 +8,18 @@
            , ScopedTypeVariables 
            , TypeSynonymInstances
            , TypeFamilies
+           , DataKinds
+           , PolyKinds
            #-}
 
 module BF.Reify where
 
+import Data.Proxy
+
 import BF.Types
 
-class Reify t a | t -> a where
-    reify :: t -> a
+class Reify (t :: k) a | t -> a where
+    reify :: Proxy t -> a
 
 --
 -- numbers
@@ -24,16 +28,18 @@ class Reify t a | t -> a where
 instance Reify Zero Int where
     reify _ = 0
 instance Reify n Int => Reify (Succ n) Int where
-    reify _ = 1 + reify (undefined :: n)
+    reify _ = reify (undefined :: Proxy n) + 1
+instance Reify n Int => Reify (Pred n) Int where
+    reify _ = reify (undefined :: Proxy n) - 1
 
 --
 -- list (of ints.  thanks liberal coverage condition)
 --
 
-instance Reify Nil [Int] where
+instance Reify '[] [Int] where
     reify _ = []
-instance (Reify t Int, Reify u [Int]) => Reify (t :* u) [Int] where
-    reify _ =  reify (undefined :: t) : reify (undefined :: u) 
+instance (Reify t Int, Reify u [Int]) => Reify (t ': u) [Int] where
+    reify _ =  reify (undefined :: Proxy t) : reify (undefined :: Proxy u) 
 
 --
 -- array (ziplist, remember?)
@@ -44,10 +50,10 @@ instance ( Reify ls [a]
          , Reify rs [a]
          , Show a
          , res ~ String
-         ) => Reify (Array ls x rs) res where
-    reify _ = (showLeft . reify $ (undefined :: ls))
-           ++ "*" ++ (show $ reify (undefined :: x ))
-           ++ (showRight . reify $ (undefined :: rs))
+         ) => Reify ('Array ls x rs) res where
+    reify _ = (showLeft . reify $ (undefined :: Proxy ls))
+           ++ "*" ++ (show $ reify (undefined :: Proxy x ))
+           ++ (showRight . reify $ (undefined :: Proxy rs))
 
 showLeft :: Show a => [a] -> String
 showLeft xs = case xs of
@@ -68,6 +74,6 @@ instance ( Reify t a
          , Reify v c
          , res ~ (a,b,c)
          ) => Reify (t,u,v) res where
-    reify _ = ( reify (undefined :: t)
-              , reify (undefined :: u)
-              , reify (undefined :: v) )
+    reify _ = ( reify (undefined :: Proxy t)
+              , reify (undefined :: Proxy u)
+              , reify (undefined :: Proxy v) )
