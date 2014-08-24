@@ -22,6 +22,7 @@ type Tape = $(ziplist $ replicate 10 0)
 type Input = $(list $ map ord "hello, world\n\0")
 type Output = '[]
 
+--type Prog = $(load "cat.bf")
 type Prog = $(bf ",[.,]")
 
 main = putStr . map chr . reify
