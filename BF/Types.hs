@@ -12,7 +12,7 @@
 
 module BF.Types where
 
--- integers, because for some reason Int isn't autopromoted with -XDataKinds
+-- integer, because for some reason Int isn't autopromoted with -XDataKinds
 data Int' = Zero | Succ Int' | Pred Int'
 
 type family Incr (n :: Int') where
@@ -33,23 +33,23 @@ type family Reverse' (acc :: [k]) (ls :: [k]) :: [k] where
 type family Reverse (ls :: [k]) :: [k] where
     Reverse ls = Reverse' '[] ls
 
--- array (basically ziplist)
-data Array a = Array [a] a [a]
+-- ziplist
+data ZipList a = ZipList [a] a [a]
 
-type family GetCur (a :: Array t) :: t where
-    GetCur ('Array ls x rs) = x
+type family GetCur (a :: ZipList t) :: t where
+    GetCur ('ZipList ls x rs) = x
 
-type family PutCur (x :: t) (a :: Array t) :: Array t where
-    PutCur x ('Array ls y rs) = 'Array ls x rs
+type family PutCur (x :: t) (a :: ZipList t) :: ZipList t where
+    PutCur x ('ZipList ls y rs) = 'ZipList ls x rs
 
-type family Inc (a :: Array t) :: Array t where
-    Inc ('Array ls x rs) = 'Array ls (Incr x) rs
+type family Inc (a :: ZipList t) :: ZipList t where
+    Inc ('ZipList ls x rs) = 'ZipList ls (Incr x) rs
 
-type family Dec (a :: Array t) :: Array t where
-    Dec ('Array ls x rs) = 'Array ls (Decr x) rs
+type family Dec (a :: ZipList t) :: ZipList t where
+    Dec ('ZipList ls x rs) = 'ZipList ls (Decr x) rs
 
-type family Forth (a :: Array t) :: Array t where
-    Forth ('Array ls x (r ': rs)) = 'Array (x ': ls) r rs
+type family Forth (a :: ZipList t) :: ZipList t where
+    Forth ('ZipList ls x (r ': rs)) = 'ZipList (x ': ls) r rs
 
-type family Back (a :: Array t) :: Array t where
-    Back ('Array (l ': ls) x rs) = 'Array ls l (x ': rs)
+type family Back (a :: ZipList t) :: ZipList t where
+    Back ('ZipList (l ': ls) x rs) = 'ZipList ls l (x ': rs)

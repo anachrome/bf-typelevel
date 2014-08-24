@@ -1,3 +1,6 @@
+-- functions to convert final type structures into normal haskell values; the
+-- counterpart to BF.Typify
+
 {-# LANGUAGE TypeOperators
            , MultiParamTypeClasses
            , FunctionalDependencies
@@ -18,13 +21,11 @@ import Data.Proxy
 
 import BF.Types
 
+-- the main typeclass/function
 class Reify (t :: k) a | t -> a where
     reify :: Proxy t -> a
 
---
--- numbers
---
-
+-- integer
 instance Reify Zero Int where
     reify _ = 0
 instance Reify n Int => Reify (Succ n) Int where
@@ -32,25 +33,19 @@ instance Reify n Int => Reify (Succ n) Int where
 instance Reify n Int => Reify (Pred n) Int where
     reify _ = reify (undefined :: Proxy n) - 1
 
---
 -- list (of ints.  thanks liberal coverage condition)
---
-
 instance Reify '[] [Int] where
     reify _ = []
 instance (Reify t Int, Reify u [Int]) => Reify (t ': u) [Int] where
     reify _ =  reify (undefined :: Proxy t) : reify (undefined :: Proxy u) 
 
---
--- array (ziplist, remember?)
---
-
+-- ziplist
 instance ( Reify ls [a]
          , Reify x   a
          , Reify rs [a]
          , Show a
          , res ~ String
-         ) => Reify ('Array ls x rs) res where
+         ) => Reify ('ZipList ls x rs) res where
     reify _ = (showLeft . reify $ (undefined :: Proxy ls))
            ++ "*" ++ (show $ reify (undefined :: Proxy x ))
            ++ (showRight . reify $ (undefined :: Proxy rs))
@@ -65,10 +60,7 @@ showRight xs = case xs of
     [] -> "]"
     xs -> "," ++ tail (show xs)
 
---
--- the final output of Eval is a threeple
---
-
+-- threeples (the input and output of Eval)
 instance ( Reify t a
          , Reify u b
          , Reify v c

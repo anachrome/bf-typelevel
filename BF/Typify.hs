@@ -1,11 +1,12 @@
+-- template haskell functions for preprocessing and generating types from normal
+-- haskell values; the counterpart to BF.Reify
+
 {-# LANGUAGE TemplateHaskell
            , FlexibleInstances
            , DataKinds
            , TypeOperators
            #-}
 
--- template haskell functions for preprocessing and generating types from easier
--- to work with values; the counterpart to BF.Reify
 module BF.Typify where
 
 import Control.Applicative ((<$>))
@@ -19,29 +20,15 @@ import Language.Haskell.TH.Syntax (addDependentFile)
 import BF.Core
 import BF.Types
 
---
 -- template haskell function to load a .bf file into a string and typify it
---
-
 load :: FilePath -> TypeQ
 load file = do
     addDependentFile file -- any files we load, we depend on
     bf <=< runIO . readFile $ file
 
--- instead of from a file
-loadfromstdin :: TypeQ
-loadfromstdin = do
-    bf =<< runIO getContents
-
---
 -- typifying functions: do essentially the opposite of reify
---
-
--- there is not general typify class because it would be unnecessarily
--- ambiguous and superfluous.
-
 bf :: String -> TypeQ
-bf bf = case parse parseAST "bf" (clean bf) of
+bf bf = case parse ast "bf" (clean bf) of
     Right t -> t
     -- literally the only possible syntax error
     Left  _ -> error "unmatching brackets"
@@ -52,24 +39,21 @@ int i = foldr (const $ appT (promotedT 'Succ)) (promotedT 'Zero) [1 .. i]
 list :: [Int] -> TypeQ
 list = foldr (appT . appT (promotedT '(:)) . int) (promotedT '[])
 
-array :: [Int] -> TypeQ
-array (x:xs) = promotedT 'Array `appT` list [] `appT` int  x `appT` list xs
+ziplist :: [Int] -> TypeQ
+ziplist (x:xs) = promotedT 'ZipList `appT` list [] `appT` int  x `appT` list xs
 
---
 -- parsers
---
+ast :: Parser TypeQ
+ast = combine <$> many astchar
 
-parseAST :: Parser TypeQ
-parseAST = combine <$> many parseASTChar
-
-parseLoop :: Parser TypeQ
-parseLoop = combine <$> manyTill parseASTChar (char ']')
+loop :: Parser TypeQ
+loop = combine <$> manyTill astchar (char ']')
 
 combine :: [TypeQ] -> TypeQ
 combine = foldr (appT . appT (promotedT ''(:>))) (promotedT ''EOBF) where
 
-parseASTChar :: Parser TypeQ
-parseASTChar = do
+astchar :: Parser TypeQ
+astchar = do
     c <- anyChar
     case c of
         '>' -> return $ promotedT ''Forward
@@ -78,10 +62,8 @@ parseASTChar = do
         '-' -> return $ promotedT ''DecBF
         '.' -> return $ promotedT ''Out
         ',' -> return $ promotedT ''In
-        '[' -> appT (promotedT ''Loop) <$> parseLoop
-        _   -> parseASTChar
+        '[' -> appT (promotedT ''Loop) <$> loop
+        _   -> astchar
 
--- clear out all the irrelevant characters so we can parse properly
 clean :: String -> String
 clean = filter (`elem` "<>+-.,[]")
-

@@ -41,7 +41,7 @@ data Loop loop
 --type BF = [BFElem]
 --data BFElem = Forward | Backward | IncBF | DecBF | Out | In | Loop BF
 
-type family Eval bf (aio :: (Array k, [k], [k])) :: (Array k, [k], [k]) where
+type family Eval bf (aio :: (ZipList k, [k], [k])) :: (ZipList k, [k], [k]) where
     Eval EOBF '(a, i, o) = '(a, i, o)
     Eval (Forward :> next) '(a, i, o) = Eval next '(Forth a, i, o)
     Eval (Backward :> next) '(a, i, o) = Eval next '(Back a, i, o)
@@ -57,18 +57,18 @@ type family Eval bf (aio :: (Array k, [k], [k])) :: (Array k, [k], [k]) where
 
     Eval (Out :> next) '(a, inp, o) = Eval next '(a, inp, (GetCur a ': o))
 
-    Eval (Loop loop :> next) '( 'Array ls Zero rs, i, o) = Eval next '( 'Array ls Zero rs, i, o)
+    Eval (Loop loop :> next) '( 'ZipList ls Zero rs, i, o) = Eval next '( 'ZipList ls Zero rs, i, o)
     Eval (Loop loop :> next) '(a, i, o) = Eval (Loop loop :> next) (Eval loop '(a, i, o))
 
 -- these three functions roughly parallel their state monad nomenbrethren
-run :: '(array', inp', out') ~ Eval bf '(array, inp, out) 
-    => Proxy bf -> Proxy '(array, inp, out) -> Proxy '(array', inp', Reverse out')
+run :: '(tape', inp', out') ~ Eval bf '(tape, inp, out) 
+    => Proxy bf -> Proxy '(tape, inp, out) -> Proxy '(tape', inp', Reverse out')
 run = undefined
 
-eval :: '(array', inp', out') ~ Eval bf '(array, inp, out)
-     => Proxy bf -> Proxy '(array, inp, out) -> Proxy (Reverse out')
+eval :: '(tape', inp', out') ~ Eval bf '(tape, inp, out)
+     => Proxy bf -> Proxy '(tape, inp, out) -> Proxy (Reverse out')
 eval = undefined
 
-exec :: '(array', inp', out') ~ Eval bf '(array, inp, out)
-     => Proxy bf -> Proxy '(array, inp, out) -> Proxy array'
+exec :: '(tape', inp', out') ~ Eval bf '(tape, inp, out)
+     => Proxy bf -> Proxy '(tape, inp, out) -> Proxy tape'
 exec = undefined
