@@ -24,7 +24,7 @@ ask it.
 
 If you do use the modules in your own code, then `-XTemplateHaskell` is of
 course optional if you really want to deal with the types manually, but
-`-XDataKinds` and -XPolyKinds` are required.
+`-XDataKinds` and `-XPolyKinds` are required.
 
 ### bf.sh
 
