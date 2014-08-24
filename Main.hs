@@ -1,4 +1,4 @@
--- Brainfuck interpreter
+-- brainfuck interpreter
 -- :3
 
 {-# LANGUAGE TemplateHaskell
@@ -22,8 +22,7 @@ type Tape = $(ziplist $ replicate 10 0)
 type Input = $(list $ map ord "hello, world\n\0")
 type Output = '[]
 
-prog = undefined :: Proxy $(bf ",[.,]")
---prog = undefined :: Proxy $(load "rot13.bf")
---prog = undefined :: Proxy $(loadfromstdin)
-main = putStr . map chr . reify . eval prog
-     $ (undefined :: Proxy '(Tape, Input, Output))
+type Prog = $(bf ",[.,]")
+
+main = putStr . map chr . reify
+     $ (undefined :: Proxy (EvalBF Prog '(Tape, Input, Output)))
