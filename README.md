@@ -37,7 +37,7 @@ a given input string:
 ```
 
 The input string are the numbers (ascii values of the characters) that get seen
-on every occurance of a ',' brainfuck command.  They need to be supplied statically
+on every occurance of a `,` brainfuck command.  They need to be supplied statically
 because, unfortunately, haskell's typechecker can't do arbitrary I/O.
 
 Also notice the terminating '\0' character: the way I've written `cat.bf`, it
