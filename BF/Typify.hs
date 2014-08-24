@@ -50,19 +50,19 @@ loop :: Parser TypeQ
 loop = combine <$> manyTill astchar (char ']')
 
 combine :: [TypeQ] -> TypeQ
-combine = foldr (appT . appT (promotedT ''(:>))) (promotedT ''EOBF) where
+combine = foldr (appT . appT (promotedT '(:))) (promotedT '[]) where
 
 astchar :: Parser TypeQ
 astchar = do
     c <- anyChar
     case c of
-        '>' -> return $ promotedT ''Forward
-        '<' -> return $ promotedT ''Backward
-        '+' -> return $ promotedT ''IncBF
-        '-' -> return $ promotedT ''DecBF
-        '.' -> return $ promotedT ''Out
-        ',' -> return $ promotedT ''In
-        '[' -> appT (promotedT ''Loop) <$> loop
+        '>' -> return $ promotedT 'Forward
+        '<' -> return $ promotedT 'Backward
+        '+' -> return $ promotedT 'IncBF
+        '-' -> return $ promotedT 'DecBF
+        '.' -> return $ promotedT 'Out
+        ',' -> return $ promotedT 'In
+        '[' -> appT (promotedT 'Loop) <$> loop
         _   -> astchar
 
 clean :: String -> String

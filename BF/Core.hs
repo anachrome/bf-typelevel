@@ -18,47 +18,29 @@ import Data.Proxy
 
 import BF.Types
 
-infixr :>
-data a :> b
-data EOBF
-data Forward
-data Backward
-data IncBF
-data DecBF
-data Out
-data In
-data Loop loop
-
---data BF = EOBF
---        | Forward BF
---        | Backward BF
---        | IncBF BF
---        | DecBF BF
---        | Out BF
---        | In BF
---        | Loop BF BF
--- alternatively
+-- this won't work until ghc implements kind synonyms
 --type BF = [BFElem]
---data BFElem = Forward | Backward | IncBF | DecBF | Out | In | Loop BF
+data BFElem = Forward | Backward | IncBF | DecBF | Out | In | Loop [BFElem]
 
-type family Eval bf (aio :: (ZipList k, [k], [k])) :: (ZipList k, [k], [k]) where
-    Eval EOBF '(a, i, o) = '(a, i, o)
-    Eval (Forward :> next) '(a, i, o) = Eval next '(Forth a, i, o)
-    Eval (Backward :> next) '(a, i, o) = Eval next '(Back a, i, o)
-    Eval (IncBF :> next) '(a, i, o) = Eval next '(Inc a, i, o)
-    Eval (DecBF :> next) '(a, i, o) = Eval next '(Dec a, i, o)
+type family Eval (bf :: [BFElem]) (aio :: (ZipList k, [k], [k])) :: (ZipList k, [k], [k]) where
+    Eval '[] aio = aio
+    Eval (bf ': rest) aio = Eval rest (EvalElem bf aio)
+
+type family EvalElem (bf :: BFElem) (aio :: (ZipList k, [k], [k])) :: (ZipList k, [k], [k]) where
+    EvalElem Forward '(a, i, o) = '(Forth a, i, o)
+    EvalElem Backward '(a, i, o) = '(Back a, i, o)
+    EvalElem IncBF '(a, i, o) = '(Inc a, i, o)
+    EvalElem DecBF '(a, i, o) = '(Dec a, i, o)
 
 -- Requesting input from an empty list results in a type error.  uncomment
 -- the below to prevent this (and possibly allow infinite loops or context
 -- stack overflows)
---    Eval (In :> next) '(a, '[], o) = '(a, '[], o)
+--    Eval In '(a, '[], o) = '(PutCur Zero a, '[], o)
 
-    Eval (In :> next) '(a, (x ': inp), o) = Eval next '(PutCur x a, inp, o)
-
-    Eval (Out :> next) '(a, inp, o) = Eval next '(a, inp, (GetCur a ': o))
-
-    Eval (Loop loop :> next) '( 'ZipList ls Zero rs, i, o) = Eval next '( 'ZipList ls Zero rs, i, o)
-    Eval (Loop loop :> next) '(a, i, o) = Eval (Loop loop :> next) (Eval loop '(a, i, o))
+    EvalElem In '(a, (x ': inp), o) = '(PutCur x a, inp, o)
+    EvalElem Out '(a, inp, o) = '(a, inp, (GetCur a ': o))
+    EvalElem (Loop loop) '( 'ZipList ls Zero rs, i, o ) = '( 'ZipList ls Zero rs, i, o )
+    EvalElem (Loop loop) '(a, i, o) = EvalElem (Loop loop) (Eval loop '(a, i, o))
 
 -- these three functions roughly parallel their state monad nomenbrethren
 run :: '(tape', inp', out') ~ Eval bf '(tape, inp, out) 
